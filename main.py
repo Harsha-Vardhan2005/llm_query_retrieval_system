@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 import os
-from fastapi import Header, Depends
+from fastapi import Header, Depends, Request
 from typing import Optional
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -80,14 +80,18 @@ class RunResponse(BaseModel):
     answers: List[str]
 
 # Document extractor helper
-def verify_token(authorization: Optional[str] = Header(None)):
-    expected_token = "254dbddb097c0ab2b89f6277bbbf7a7daae4b243cf2bc42d73ef4d5e16bba557"
-    if authorization is None or not authorization.startswith("Bearer "):
+from fastapi import Request
+
+def verify_token(request: Request):
+    auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-    token = authorization.split(" ")[1]
+    token = auth_header.split(" ")[1]
+    expected_token = "254dbddb097c0ab2b89f6277bbbf7a7daae4b243cf2bc42d73ef4d5e16bba557"
     if token != expected_token:
         raise HTTPException(status_code=403, detail="Invalid token")
     return token
+
 
 def extract_text_from_document(doc_url: str) -> str:
     local_path = download_file(doc_url)
@@ -251,6 +255,7 @@ async def run_submission(req: RunRequest, token: str = Depends(verify_token)):
 @app.get("/health")
 async def health():
     return {"status": "ok", "embedding_model": "Gemini", "engine": "FAISS"}
+
 
 
 
