@@ -20,6 +20,7 @@ load_dotenv()
 nltk_data_path = "/tmp/nltk_data"
 os.makedirs(nltk_data_path, exist_ok=True)
 nltk.download('punkt', download_dir=nltk_data_path)
+nltk.download('punkt_tab', download_dir=nltk_data_path)
 nltk.data.path.append(nltk_data_path)
 
 # Configure logging
@@ -362,4 +363,5 @@ def semantic_search(search_engine: DocumentSearchEngine, query: str, top_k: int 
     """Semantic search"""
     results = search_engine.search(query, top_k)
     return [clause for clause, score in results]
+
 
